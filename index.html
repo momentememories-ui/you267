@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>สุขสันต์วันพ่อ</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff6b81;
+            --accent: #ff4757;
+            --border-light: #ffccd5;
+            --bg-soft: #fff0f3;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        body {
+            background-color: #1e1e24;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* กรอบจำลองหน้าจอมือถือแนวตั้ง */
+        .mobile-container {
+            width: 100%;
+            max-width: 430px;
+            height: 100vh;
+            max-height: 932px;
+            background-color: #fff;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ----- หน้า 1: หน้าเล่นเกม ----- */
+        #game-page {
+            padding: 25px 20px;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .header-title {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .header-title h1 {
+            font-size: 26px;
+            color: var(--accent);
+            font-weight: 800;
+            text-shadow: 1px 1px 0px #fff;
+        }
+
+        .header-title p {
+            font-size: 15px;
+            color: #57606f;
+            margin-top: 6px;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            margin: auto 0;
+        }
+
+        .card-item {
+            background: #fff;
+            border-radius: 20px;
+            padding: 12px;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.06);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card-item:active {
+            transform: scale(0.96);
+        }
+
+        .card-thumb {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #f1f2f6;
+            border-radius: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 36px;
+            color: #a4b0be;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .card-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 14px;
+        }
+
+        .card-tag {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2f3542;
+        }
+
+        .card-tag.wrong {
+            color: #ff4757;
+            font-weight: 700;
+        }
+
+        .footer-hint {
+            font-size: 13px;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        /* Modal สำหรับขูดรูป */
+        .modal {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 20px 15px;
+            border-radius: 24px;
+            text-align: center;
+            width: 100%;
+            height: 94%;
+            max-width: 390px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .modal-header {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 5px 0;
+        }
+
+        .scratch-container {
+            width: 100%;
+            flex: 1;
+            margin: 10px 0;
+            position: relative;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.15);
+            background: #dcdde1;
+        }
+
+        .scratch-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0; left: 0;
+            opacity: 0;
+            transition: opacity 0.1s ease;
+        }
+
+        .scratch-container canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            touch-action: none;
+            z-index: 2;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: -5px; 
+            right: 5px;
+            font-size: 26px;
+            font-weight: bold;
+            color: #ffffff;
+            background: #ff4757;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border: 2px solid #ffffff;
+            z-index: 10;
+        }
+
+        .close-btn:active {
+            transform: scale(0.9);
+        }
+
+        .success-box {
+            display: none;
+            width: 100%;
+            margin-top: 5px;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .success-title {
+            color: #2ed573;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .money-text {
+            color: #2f3542;
+            font-size: 19px;
+            font-weight: 700;
+            margin: 8px 0 12px 0;
+            background: var(--bg-soft);
+            padding: 10px 18px;
+            border-radius: 30px;
+            display: inline-block;
+            box-shadow: 0 4px 12px rgba(255, 107, 129, 0.15);
+            border: 1.5px solid var(--border-light);
+            letter-spacing: 0.3px;
+            animation: bounceBounce 1.2s infinite ease-in-out;
+        }
+
+        @keyframes bounceBounce {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+            }
+            30% {
+                transform: translateY(-8px) scale(1.03);
+            }
+            50% {
+                transform: translateY(0) scale(0.98);
+            }
+            70% {
+                transform: translateY(-4px) scale(1.01);
+            }
+        }
+
+        .next-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 71, 87, 0.4);
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        .next-btn:active {
+            background: var(--primary);
+        }
+
+        /* ----- หน้า 2: หน้าอวยพรวันพ่อ (โชว์ photo5.png เต็มหน้าจอ + อิโมจิลอย) ----- */
+        #wish-page {
+            display: none;
+            height: 100%;
+            width: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .floating-emoji {
+            position: absolute;
+            bottom: -50px;
+            pointer-events: none;
+            z-index: 20;
+            animation: floatUp linear forwards;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.2));
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg) scale(0.8);
+                opacity: 0;
+            }
+            15% {
+                opacity: 1;
+            }
+            50% {
+                transform: translateY(-450px) translateX(20px) rotate(15deg) scale(1.1);
+            }
+            85% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-980px) translateX(-20px) rotate(-15deg) scale(1);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- แท็กสำหรับเล่นเพลงซ้ำ (loop) -->
+<audio id="bgMusic" src="song.mp3" loop preload="auto"></audio>
+
+<div class="mobile-container">
+    <!-- หน้า 1: เกมขูดการ์ด -->
+    <div id="game-page">
+        <div class="header-title">
+            <h1>🔍 หาให้เจอ!</h1>
+            <p>คนไหนคือลูกของคุณพ่อ?</p>
+        </div>
+
+        <div class="card-grid">
+            <div class="card-item" onclick="openScratchModal(1, 'photo1.png', false)">
+                <div class="card-thumb" id="thumb-1">❓</div>
+                <div class="card-tag" id="tag-1">การ์ดใบที่ 1</div>
+            </div>
+            <div class="card-item" onclick="openScratchModal(2, 'photo2.png', false)">
+                <div class="card-thumb" id="thumb-2">❓</div>
+                <div class="card-tag" id="tag-2">การ์ดใบที่ 2</div>
+            </div>
+            <div class="card-item" onclick="openScratchModal(3, 'photo3.png', false)">
+                <div class="card-thumb" id="thumb-3">❓</div>
+                <div class="card-tag" id="tag-3">การ์ดใบที่ 3</div>
+            </div>
+            <!-- การ์ดที่ถูกต้องคือ photo4.png -->
+            <div class="card-item" onclick="openScratchModal(4, 'photo4.png', true)">
+                <div class="card-thumb" id="thumb-4">❓</div>
+                <div class="card-tag" id="tag-4">การ์ดใบที่ 4</div>
+            </div>
+        </div>
+
+        <div class="footer-hint">
+            💡 กดที่การ์ดแล้วใช้นิ้วขูดดูรูปได้เลย!
+        </div>
+    </div>
+
+    <!-- Modal ขูดรูป -->
+    <div id="scratchModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalHint" style="color: #2f3542; font-size: 16px;">ขูดตรงนี้เลย!👇🏻</h3>
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+            </div>
+            
+            <div class="scratch-container" id="scratchContainer">
+                <img id="targetImage" src="" alt="ลูก">
+                <canvas id="scratchCanvas"></canvas>
+            </div>
+
+            <div id="wrongText" style="display:none; color: #ff4757; font-weight:600; margin: 5px 0;">
+                ไม่ใช่ลูกพ่อนะคนนี้! ลองขูดใบอื่นดูใหม่ 😜
+            </div>
+
+            <div id="successBox" class="success-box">
+                <div class="success-title">เย้!</div>
+                <div style="font-size: 13px; color: #2f3542; margin-top: 2px;">ลูกสาวตัวจริงเสียงจริง!</div>
+                <div class="money-text">ลูกสาว ขอตัง200💸</div>
+                <button class="next-btn" onclick="goToWishPage()">ไปอ่านคำอวยพรวันพ่อกันค่ะ❤️</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- หน้า 2: หน้าคำอวยพรวันพ่อ (โชว์ photo5.png เต็มหน้าจอ + อิโมจิลอย) -->
+    <div id="wish-page"></div>
+</div>
+
+<script>
+    let canvas = document.getElementById('scratchCanvas');
+    let ctx = canvas.getContext('2d');
+    let scratchContainer = document.getElementById('scratchContainer');
+    let targetImage = document.getElementById('targetImage');
+    let isDrawing = false;
+    let isCorrectCard = false;
+    let hasRevealed = false;
+    let currentCardIndex = null;
+    let currentImageSrc = '';
+    let emojiInterval = null;
+
+    // ระบบเล่นเพลงอัตโนมัติเมื่อกดสัมผัสหน้าจอครั้งแรก
+    let isMusicStarted = false;
+    function startMusic() {
+        if (!isMusicStarted) {
+            let music = document.getElementById('bgMusic');
+            if (music) {
+                music.play().then(() => {
+                    isMusicStarted = true;
+                }).catch(err => {
+                    console.log("Autoplay waiting for user interaction:", err);
+                });
+            }
+        }
+    }
+
+    // ฟังเหตุการณ์การกดสัมผัสเพื่อเริ่มเล่นเพลงทันทีที่เปิด/แตะเว็บ
+    window.addEventListener('click', startMusic, { once: true });
+    window.addEventListener('touchstart', startMusic, { once: true });
+
+    function resizeCanvas() {
+        let rect = scratchContainer.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+    }
+
+    function openScratchModal(cardIndex, imageSrc, isCorrect) {
+        startMusic();
+        currentCardIndex = cardIndex;
+        currentImageSrc = imageSrc;
+        isCorrectCard = isCorrect;
+        hasRevealed = false;
+        
+        targetImage.style.opacity = '0';
+        targetImage.src = imageSrc;
+
+        document.getElementById('wrongText').style.display = 'none';
+        document.getElementById('successBox').style.display = 'none';
+        document.getElementById('modalHint').innerText = "ขูดตรงนี้เลย!👇🏻";
+        document.getElementById('scratchModal').style.display = 'flex';
+
+        requestAnimationFrame(() => {
+            resizeCanvas();
+            initCanvas();
+            targetImage.style.opacity = '1';
+        });
+    }
+
+    function initCanvas() {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = '#dcdde1';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        let fontSize = Math.max(18, Math.floor(canvas.width * 0.065));
+        ctx.fillStyle = '#2f3542';
+        ctx.font = `600 ${fontSize}px Prompt, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('', canvas.width / 2, canvas.height / 2);
+    }
+
+    function getBrushPos(xRef, yRef) {
+        let bridgeRect = canvas.getBoundingClientRect();
+        return {
+            x: xRef - bridgeRect.left,
+            y: yRef - bridgeRect.top
+        };
+    }
+
+    function drawScratch(x, y) {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.arc(x, y, 35, 0, Math.PI * 2, false);
+        ctx.fill();
+        checkScratchPercentage();
+    }
+
+    canvas.addEventListener('mousedown', (e) => { isDrawing = true; scratch(e); });
+    canvas.addEventListener('mousemove', (e) => { if(isDrawing) scratch(e); });
+    canvas.addEventListener('mouseup', () => { isDrawing = false; });
+
+    canvas.addEventListener
