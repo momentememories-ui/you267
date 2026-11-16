@@ -400,10 +400,10 @@
             </div>
 
             <div id="successBox" class="success-box">
-                <div class="success-title">เย้!</div>
+                <div class="success-title">เย้! เก่งมากกก!</div>
                 <div style="font-size: 13px; color: #2f3542; margin-top: 2px;">ลูกสาวตัวจริงเสียงจริง!</div>
-                <div class="money-text">ลูกสาว ขอตัง200💸</div>
-                <button class="next-btn" onclick="goToWishPage()">ไปอ่านคำอวยพรวันพ่อกันค่ะ❤️</button>
+                <div class="money-text">รักพ่อนะคะ ขอตังหน่อย💸</div>
+                <button class="next-btn" onclick="goToWishPage()">ไปอ่านคำอวยพรวันพ่อกันค่ะ ❤️</button>
             </div>
         </div>
     </div>
@@ -504,4 +504,114 @@
     canvas.addEventListener('mousemove', (e) => { if(isDrawing) scratch(e); });
     canvas.addEventListener('mouseup', () => { isDrawing = false; });
 
-    canvas.addEventListener
+    canvas.addEventListener('touchstart', (e) => { isDrawing = true; scratchTouch(e); });
+    canvas.addEventListener('touchmove', (e) => { if(isDrawing) scratchTouch(e); });
+    canvas.addEventListener('touchend', () => { isDrawing = false; });
+
+    function scratch(e) {
+        let pos = getBrushPos(e.clientX, e.clientY);
+        drawScratch(pos.x, pos.y);
+    }
+
+    function scratchTouch(e) {
+        e.preventDefault();
+        if (e.touches.length > 0) {
+            let pos = getBrushPos(e.touches[0].clientX, e.touches[0].clientY);
+            drawScratch(pos.x, pos.y);
+        }
+    }
+
+    function checkScratchPercentage() {
+        if(hasRevealed) return;
+
+        let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        let pixels = imageData.data;
+        let transparentPixels = 0;
+
+        for (let i = 0; i < pixels.length; i += 4) {
+            if (pixels[i + 3] === 0) transparentPixels++;
+        }
+
+        let percentage = (transparentPixels / (pixels.length / 4)) * 100;
+
+        if (percentage >= 50) {
+            hasRevealed = true;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (currentCardIndex) {
+                let thumbElement = document.getElementById(`thumb-${currentCardIndex}`);
+                let tagElement = document.getElementById(`tag-${currentCardIndex}`);
+                
+                thumbElement.innerHTML = `<img src="${currentImageSrc}" alt="รูปที่ขูดแล้ว">`;
+                
+                if (!isCorrectCard) {
+                    tagElement.innerText = "การ์ดใบนี้ไม่ใช่ลูกพ่อ";
+                    tagElement.classList.add("wrong");
+                }
+            }
+
+            if (isCorrectCard) {
+                document.getElementById('modalHint').innerText = "เจอแล้ว!";
+                document.getElementById('successBox').style.display = 'block';
+            } else {
+                document.getElementById('wrongText').style.display = 'block';
+            }
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('scratchModal').style.display = 'none';
+        targetImage.style.opacity = '0';
+    }
+
+    function startFloatingEmojis() {
+        const wishPage = document.getElementById('wish-page');
+        const emojis = ['❤️', '🩷', '💖', '💕'];
+
+        // สร้างอิโมจิชุดแรกทันที
+        for (let i = 0; i < 6; i++) {
+            setTimeout(() => createEmoji(wishPage, emojis), i * 250);
+        }
+
+        // ปล่อยอิโมจิลอยขึ้นมาเรื่อยๆ ทุก 0.45 วินาที
+        emojiInterval = setInterval(() => {
+            createEmoji(wishPage, emojis);
+        }, 450);
+    }
+
+    function createEmoji(container, emojiList) {
+        const emojiEl = document.createElement('div');
+        emojiEl.className = 'floating-emoji';
+        emojiEl.innerText = emojiList[Math.floor(Math.random() * emojiList.length)];
+
+        // สุ่มตำแหน่งแนวนอน ขนาด และความเร็วในการลอย
+        const leftPos = Math.random() * 88 + 4; // 4% - 92%
+        const fontSize = Math.floor(Math.random() * 18) + 24; // 24px - 42px
+        const duration = (Math.random() * 2.5 + 3.5).toFixed(2); // 3.5s - 6s
+
+        emojiEl.style.left = `${leftPos}%`;
+        emojiEl.style.fontSize = `${fontSize}px`;
+        emojiEl.style.animationDuration = `${duration}s`;
+
+        container.appendChild(emojiEl);
+
+        // ลบ Element ทิ้งเมื่อลอยพ้นจอแล้วเพื่อไม่ให้กินแรม
+        setTimeout(() => {
+            emojiEl.remove();
+        }, parseFloat(duration) * 1000);
+    }
+
+    function goToWishPage() {
+        closeModal();
+        document.getElementById('game-page').style.display = 'none';
+        
+        let wishPage = document.getElementById('wish-page');
+        wishPage.style.backgroundImage = "url('photo5.png')";
+        wishPage.style.display = 'block';
+
+        startFloatingEmojis();
+    }
+</script>
+
+</body>
+</html>
